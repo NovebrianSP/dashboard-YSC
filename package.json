@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "build:css": "node ./scripts/build-css.js"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.0",
+    "postcss": "8.5.33",
+    "tailwindcss": "4.3.0"
+  }
+}
