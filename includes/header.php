@@ -14,6 +14,8 @@ $flashStyle = match ($flashMessage['type'] ?? '') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h($pageTitle) ?> | Smart Cendekia</title>
+    <link rel="icon" type="image/png" href="<?= h(app_url('/assets/logo_ysc-1-removebg-preview.png?v=3')) ?>">
+    <meta name="theme-color" content="#142b4a">
     <link href="<?= h(app_url('/assets/css/app.css')) ?>" rel="stylesheet">
     <?php if (in_array($pageTitle, ['Buat Notulensi', 'Edit Notulensi'], true)): ?>
         <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">

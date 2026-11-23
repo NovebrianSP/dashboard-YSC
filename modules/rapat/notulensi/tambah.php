@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../../includes/auth_check.php';
 require_admin();
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 $meetingId = filter_input(INPUT_GET, 'id_rapat', FILTER_VALIDATE_INT) ?: filter_input(INPUT_POST, 'id_rapat', FILTER_VALIDATE_INT);
-$statement = $pdo->prepare('SELECT j.* FROM jadwal_rapat j LEFT JOIN notulensi n ON n.id_rapat=j.id_rapat WHERE j.id_rapat=:id AND n.id_notulensi IS NULL');
+$statement = $pdo->prepare("SELECT j.* FROM jadwal_rapat j LEFT JOIN notulensi n ON n.id_rapat=j.id_rapat WHERE j.id_rapat=:id AND j.status_rapat='selesai' AND n.id_notulensi IS NULL");
 $statement->execute(['id' => $meetingId ?: 0]);
 $meeting = $statement->fetch();
-if (!$meeting) { http_response_code(404); exit('Jadwal tidak ditemukan atau sudah memiliki notulensi.'); }
+if (!$meeting) { http_response_code(404); exit('Rapat tidak ditemukan, belum berstatus selesai, atau sudah memiliki notulensi.'); }
 $errors = [];
 $values = ['daftar_hadir' => '', 'isi_pembahasan' => '', 'keputusan_final' => ''];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $minuteId = (int) $pdo->lastInsertId();
             $pdo->commit();
             flash('success', 'Notulensi berhasil dibuat.');
-            redirect('/modules/notulensi/detail.php?id=' . $minuteId);
+            redirect('/modules/rapat/notulensi/detail.php?id=' . $minuteId);
         }
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $pageTitle = 'Buat Notulensi';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../../includes/header.php';
 ?>
 <div class="page-heading"><div><p class="eyebrow">DOKUMENTASI</p><h1>Buat Notulensi</h1><p class="text-slate-500"><?= h($meeting['judul_rapat']) ?> · <?= h(format_date($meeting['tanggal_rapat'])) ?></p></div></div>
 <?php if ($errors): ?><div class="alert alert-danger" role="alert"><?= h(implode(' ', $errors)) ?></div><?php endif; ?>
@@ -44,7 +44,7 @@ require __DIR__ . '/../../includes/header.php';
     <div class="mb-4"><label class="field-label">Poin pembahasan rapat</label><div id="discussion-editor" class="rich-editor"></div><textarea class="hidden" id="discussion-content" name="isi_pembahasan"><?= h($values['isi_pembahasan']) ?></textarea><div class="field-note">Format teks dengan tebal, miring, dan daftar.</div></div>
     <div class="mb-4"><label class="field-label">Keputusan final</label><textarea class="field-control" name="keputusan_final" rows="5" required><?= h($values['keputusan_final']) ?></textarea></div>
     <div class="mb-5"><label class="field-label">Lampiran (opsional, PDF/JPG/PNG maks. 5 MB)</label><input class="field-control file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100" type="file" name="lampiran" accept=".pdf,.jpg,.jpeg,.png"></div>
-    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Notulensi</button><a class="button button-secondary" href="<?= h(app_url('/modules/notulensi/index.php')) ?>">Batal</a></div>
+    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Notulensi</button><a class="button button-secondary" href="<?= h(app_url('/modules/rapat/index.php#arsip-notulensi')) ?>">Batal</a></div>
 </form>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script>
@@ -57,4 +57,4 @@ document.querySelector('form.form-panel').addEventListener('submit', () => {
     document.querySelector('#discussion-content').value = discussionEditor.root.innerHTML;
 });
 </script>
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/footer.php'; ?>

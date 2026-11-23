@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('Meto
 verify_csrf();
 $taskId = filter_input(INPUT_POST, 'id_tugas', FILTER_VALIDATE_INT);
 $status = (string) ($_POST['status_tugas'] ?? '');
-$returnTo = safe_return_path((string) ($_POST['return_to'] ?? ''), '/modules/notulensi/index.php');
+$returnTo = safe_return_path((string) ($_POST['return_to'] ?? ''), '/modules/rapat/index.php#arsip-notulensi');
 if (!$taskId || !in_array($status, ['pending','proses','selesai'], true)) { http_response_code(400); exit('Data status tugas tidak valid.'); }
 $statement = $pdo->prepare('SELECT t.penanggung_jawab,j.kategori_unit FROM tindak_lanjut t JOIN notulensi n ON n.id_notulensi=t.id_notulensi JOIN jadwal_rapat j ON j.id_rapat=n.id_rapat WHERE t.id_tugas=:id');
 $statement->execute(['id' => $taskId]);

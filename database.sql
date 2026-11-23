@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS smartcendekia
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-USE smartcendekia;
+-- CREATE DATABASE IF NOT EXISTS smartcendekia
+--     CHARACTER SET utf8mb4
+--     COLLATE utf8mb4_unicode_ci;
+-- USE smartcendekia;
 
 CREATE TABLE IF NOT EXISTS users (
     id_user INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'pimpinan', 'unit_sdit', 'unit_smpit') NOT NULL,
+    no_whatsapp VARCHAR(20) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS jadwal_rapat (
     kategori_unit ENUM('yayasan', 'sdit', 'smpit', 'semua') NOT NULL,
     status_rapat ENUM('terjadwal', 'selesai', 'dibatalkan') NOT NULL DEFAULT 'terjadwal',
     deskripsi_agenda TEXT NULL,
+    reminder_terkirim TINYINT(1) NOT NULL DEFAULT 0,
     dibuat_oleh INT UNSIGNED NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_jadwal_tanggal_status (tanggal_rapat, status_rapat),
@@ -75,4 +77,17 @@ CREATE TABLE IF NOT EXISTS dap_activities (
     aktivitas TEXT NOT NULL,
     UNIQUE KEY uq_dap_activity_slot (id_dap, tanggal, waktu_mulai),
     CONSTRAINT fk_dap_activities_dap FOREIGN KEY (id_dap) REFERENCES dap(id_dap) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS laporan_bulanan (
+    id_laporan INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    bulan DATE NOT NULL,
+    nama_file VARCHAR(64) NOT NULL UNIQUE,
+    nama_asli VARCHAR(240) NOT NULL,
+    tipe_mime VARCHAR(100) NOT NULL,
+    ukuran_file INT UNSIGNED NOT NULL,
+    diunggah_oleh INT UNSIGNED NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_laporan_bulanan_bulan (bulan, created_at),
+    CONSTRAINT fk_laporan_bulanan_user FOREIGN KEY (diunggah_oleh) REFERENCES users(id_user) ON DELETE SET NULL
 ) ENGINE=InnoDB;

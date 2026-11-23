@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -81,6 +82,20 @@ function require_meeting_create_access(): void
     }
 }
 
+function can_change_meeting_status(): bool
+{
+    return in_array(current_user()['role'] ?? '', ['admin', 'pimpinan'], true);
+}
+
+function require_meeting_status_access(): void
+{
+    require_login();
+    if (!can_change_meeting_status()) {
+        http_response_code(403);
+        exit('Hanya admin dan pimpinan yang dapat mengubah status rapat.');
+    }
+}
+
 function can_access_category(string $category): bool
 {
     $role = current_user()['role'] ?? '';
@@ -140,8 +155,18 @@ function format_date(?string $date): string
         return '-';
     }
     $months = [
-        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
     ];
     $timestamp = strtotime($date);
     if ($timestamp === false) {
@@ -256,4 +281,84 @@ function meeting_visibility_sql(string $alias = 'j'): string
 function safe_return_path(string $path, string $fallback): string
 {
     return str_starts_with($path, '/') && !str_starts_with($path, '//') ? $path : $fallback;
+}
+
+function meeting_invite_text(array $meeting): string
+{
+    return implode("\n", [
+        '*UNDANGAN RAPAT*',
+        '',
+        'Agenda: ' . $meeting['judul_rapat'],
+        'Tanggal: ' . format_date($meeting['tanggal_rapat']),
+        'Waktu: ' . substr($meeting['waktu_mulai'], 0, 5) . ' WIB',
+        'Tempat: ' . $meeting['lokasi'],
+        'Unit: ' . category_label($meeting['kategori_unit']),
+        '',
+        'Mohon kehadirannya. Terima kasih.',
+        'Yayasan Smart Cendekia',
+    ]);
+}
+
+function normalize_wa_number(string $number): string
+{
+    $digits = preg_replace('/\D+/', '', $number) ?? '';
+    if (str_starts_with($digits, '0')) {
+        $digits = '62' . substr($digits, 1);
+    }
+    return $digits;
+}
+
+function wa_clean(string $text): string
+{
+    // Variabel template WhatsApp tidak boleh berisi baris baru atau spasi berlebih.
+    return trim(preg_replace('/\s+/', ' ', $text) ?? '');
+}
+
+function send_whatsapp_template(string $to, array $params): bool
+{
+    $configFile = __DIR__ . '/whatsapp.php';
+    if (!is_file($configFile)) {
+        error_log('config/whatsapp.php belum dibuat.');
+        return false;
+    }
+    $cfg = require $configFile;
+
+    $payload = [
+        'messaging_product' => 'whatsapp',
+        'to' => normalize_wa_number($to),
+        'type' => 'template',
+        'template' => [
+            'name' => $cfg['template'],
+            'language' => ['code' => 'id'],
+            'components' => [[
+                'type' => 'body',
+                'parameters' => array_map(
+                    static fn(string $p): array => ['type' => 'text', 'text' => wa_clean($p)],
+                    $params
+                ),
+            ]],
+        ],
+    ];
+
+    $ch = curl_init("https://graph.facebook.com/{$cfg['version']}/{$cfg['phone_number_id']}/messages");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $cfg['token'],
+            'Content-Type: application/json',
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+    ]);
+    
+    $response = curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+
+    if ($code < 200 || $code >= 300) {
+        error_log('WhatsApp API gagal (' . $code . '): ' . (string) $response);
+        return false;
+    }
+    return true;
 }

@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../../includes/auth_check.php';
 require_admin();
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $statement = $pdo->prepare('SELECT n.*,j.judul_rapat,j.tanggal_rapat FROM notulensi n JOIN jadwal_rapat j ON j.id_rapat=n.id_rapat WHERE n.id_notulensi=:id');
 $statement->execute(['id' => $id ?: 0]);
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->commit();
             if ($minute['file_lampiran'] && $filename !== $minute['file_lampiran']) delete_attachment($minute['file_lampiran']);
             flash('success', 'Notulensi berhasil diperbarui.');
-            redirect('/modules/notulensi/detail.php?id=' . $id);
+            redirect('/modules/rapat/notulensi/detail.php?id=' . $id);
         }
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $pageTitle = 'Edit Notulensi';
-require __DIR__ . '/../../includes/header.php';
+require __DIR__ . '/../../../includes/header.php';
 ?>
 <div class="page-heading"><div><p class="eyebrow">DOKUMENTASI</p><h1>Edit Notulensi</h1><p class="text-slate-500"><?= h($minute['judul_rapat']) ?> · <?= h(format_date($minute['tanggal_rapat'])) ?></p></div></div>
 <?php if ($errors): ?><div class="alert alert-danger" role="alert"><?= h(implode(' ', $errors)) ?></div><?php endif; ?>
@@ -46,7 +46,7 @@ require __DIR__ . '/../../includes/header.php';
     <div class="mb-4"><label class="field-label">Keputusan final</label><textarea class="field-control" name="keputusan_final" rows="5" required><?= h($minute['keputusan_final']) ?></textarea></div>
     <?php if ($minute['file_lampiran']): ?><div class="mb-4 flex items-center gap-2"><input class="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500" type="checkbox" name="hapus_lampiran" id="hapus_lampiran" value="1"><label class="text-sm text-slate-700" for="hapus_lampiran">Hapus lampiran saat ini</label></div><?php endif; ?>
     <div class="mb-5"><label class="field-label">Ganti / tambah lampiran (PDF/JPG/PNG maks. 5 MB)</label><input class="field-control file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100" type="file" name="lampiran" accept=".pdf,.jpg,.jpeg,.png"></div>
-    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Perubahan</button><a class="button button-secondary" href="<?= h(app_url('/modules/notulensi/detail.php')) ?>?id=<?= (int) $id ?>">Batal</a></div>
+    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Perubahan</button><a class="button button-secondary" href="<?= h(app_url('/modules/rapat/notulensi/detail.php')) ?>?id=<?= (int) $id ?>">Batal</a></div>
 </form>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script>
@@ -59,4 +59,4 @@ document.querySelector('form.form-panel').addEventListener('submit', () => {
     document.querySelector('#discussion-content').value = discussionEditor.root.innerHTML;
 });
 </script>
-<?php require __DIR__ . '/../../includes/footer.php'; ?>
+<?php require __DIR__ . '/../../../includes/footer.php'; ?>

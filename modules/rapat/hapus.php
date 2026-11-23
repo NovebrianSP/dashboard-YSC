@@ -9,4 +9,4 @@ if (!$id) { http_response_code(400); exit('ID jadwal tidak valid.'); }
 $statement = $pdo->prepare('DELETE FROM jadwal_rapat WHERE id_rapat = :id');
 $statement->execute(['id' => $id]);
 flash('success', $statement->rowCount() ? 'Jadwal dan data terkait berhasil dihapus.' : 'Jadwal tidak ditemukan.');
-redirect('/modules/jadwal/index.php');
+redirect('/modules/rapat/index.php');

@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $statement = $pdo->prepare('INSERT INTO jadwal_rapat (judul_rapat,tanggal_rapat,waktu_mulai,lokasi,kategori_unit,deskripsi_agenda,dibuat_oleh) VALUES (:judul,:tanggal,:waktu,:lokasi,:kategori,:deskripsi,:user)');
         $statement->execute(['judul'=>$values['judul_rapat'],'tanggal'=>$values['tanggal_rapat'],'waktu'=>$values['waktu_mulai'],'lokasi'=>$values['lokasi'],'kategori'=>$values['kategori_unit'],'deskripsi'=>$values['deskripsi_agenda'],'user'=>current_user()['id_user']]);
         flash('success', 'Jadwal rapat berhasil ditambahkan.');
-        redirect('/modules/jadwal/index.php');
+        redirect('/modules/rapat/index.php');
     }
 }
 $pageTitle = 'Tambah Jadwal';
@@ -33,6 +33,6 @@ require __DIR__ . '/../../includes/header.php';
     <div class="mb-4"><label class="field-label">Lokasi atau tautan rapat</label><input class="field-control" name="lokasi" maxlength="150" value="<?= h($values['lokasi']) ?>" required></div>
     <div class="mb-4"><label class="field-label">Kategori unit</label><select class="field-control" name="kategori_unit"><?php foreach (['yayasan','sdit','smpit','semua'] as $option): ?><option value="<?= h($option) ?>" <?= $values['kategori_unit'] === $option ? 'selected' : '' ?>><?= h(category_label($option)) ?></option><?php endforeach; ?></select></div>
     <div class="mb-5"><label class="field-label">Deskripsi agenda</label><textarea class="field-control" name="deskripsi_agenda" rows="4"><?= h($values['deskripsi_agenda']) ?></textarea></div>
-    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Jadwal</button><a class="button button-secondary" href="<?= h(app_url('/modules/jadwal/index.php')) ?>">Batal</a></div>
+    <div class="flex flex-wrap gap-2"><button class="button button-primary">Simpan Jadwal</button><a class="button button-secondary" href="<?= h(app_url('/modules/rapat/index.php')) ?>">Batal</a></div>
 </form>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>
