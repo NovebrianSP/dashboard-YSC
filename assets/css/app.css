@@ -2103,3 +2103,43 @@
     }
   }
 }
+
+/* Footer copyright */
+.main-content {
+    display: flex;
+    flex-direction: column;
+}
+.app-footer {
+    margin-top: auto;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    padding: 1rem 1rem;
+    text-align: center;
+    font-size: .8125rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+@media (min-width: 40rem) {
+    .app-footer { padding-inline: 2rem; }
+}
+.app-footer strong {
+    font-weight: 600;
+    color: #334155;
+}
+@media print {
+    .app-footer { display: none !important; }
+}
+
+/* Overlay sidebar (mobile) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(15, 23, 42, .5);
+}
+@media (max-width: 63.999rem) {
+    .sidebar.is-open + .sidebar-overlay {
+        display: block;
+    }
+}
