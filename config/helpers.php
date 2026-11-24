@@ -369,3 +369,31 @@ function asset_url(string $path): string
     $version = is_file($file) ? (string) filemtime($file) : (string) time();
     return app_url($path) . '?v=' . $version;
 }
+
+function format_rupiah(float|int|string $amount): string
+{
+    return 'Rp ' . number_format((float) $amount, 0, ',', '.');
+}
+
+function can_view_finance(): bool
+{
+    return in_array(current_user()['role'] ?? '', ['admin', 'pimpinan'], true);
+}
+
+function require_finance_access(): void
+{
+    require_login();
+    if (!can_view_finance()) {
+        http_response_code(403);
+        exit('Hanya admin dan pimpinan yang dapat melihat laporan keuangan.');
+    }
+}
+
+function pos_label(string $pos): string
+{
+    return [
+        'yayasan' => 'Yayasan',
+        'kantin' => 'Kantin',
+        'donasi' => 'Donasi',
+    ][$pos] ?? ucfirst($pos);
+}
