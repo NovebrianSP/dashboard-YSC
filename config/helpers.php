@@ -362,3 +362,10 @@ function send_whatsapp_template(string $to, array $params): bool
     }
     return true;
 }
+
+function asset_url(string $path): string
+{
+    $file = dirname(__DIR__) . '/' . ltrim($path, '/');
+    $version = is_file($file) ? (string) filemtime($file) : (string) time();
+    return app_url($path) . '?v=' . $version;
+}

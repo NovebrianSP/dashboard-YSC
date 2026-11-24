@@ -91,3 +91,20 @@ CREATE TABLE IF NOT EXISTS laporan_bulanan (
     INDEX idx_laporan_bulanan_bulan (bulan, created_at),
     CONSTRAINT fk_laporan_bulanan_user FOREIGN KEY (diunggah_oleh) REFERENCES users(id_user) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS transaksi_keuangan (
+    id_transaksi INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tanggal DATE NOT NULL,
+    jenis ENUM('pemasukan', 'pengeluaran') NOT NULL,
+    kategori VARCHAR(60) NOT NULL,
+    pos ENUM('yayasan', 'kantin', 'donasi') NOT NULL,
+    keterangan VARCHAR(200) NULL,
+    jumlah DECIMAL(15,2) NOT NULL,
+    is_demo TINYINT(1) NOT NULL DEFAULT 0,
+    dibuat_oleh INT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_keu_tanggal (tanggal, jenis),
+    INDEX idx_keu_pos (pos),
+    INDEX idx_keu_demo (is_demo),
+    CONSTRAINT fk_keu_user FOREIGN KEY (dibuat_oleh) REFERENCES users(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB;

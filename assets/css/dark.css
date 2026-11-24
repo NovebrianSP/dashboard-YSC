@@ -1,0 +1,164 @@
+@media screen {
+    :root[data-theme="dark"] {
+        color-scheme: dark; /* scrollbar, kalender tanggal, dropdown ikut gelap */
+        --surface: #111a2c;
+
+        --color-slate-50: #0b1220;
+        --color-slate-100: #1a2640;
+        --color-slate-200: #243247;
+        --color-slate-300: #34445c;
+        --color-slate-400: #64748b;
+        --color-slate-500: #94a3b8;
+        --color-slate-600: #a3b1c6;
+        --color-slate-700: #cbd5e1;
+        --color-slate-800: #e2e8f0;
+        --color-slate-900: #f1f5f9;
+
+        --color-blue-50: #0f1f3d;
+        --color-blue-100: #172a52;
+        --color-blue-200: #1e3a6e;
+        --color-blue-700: #60a5fa;
+        --color-blue-800: #93c5fd;
+        --color-indigo-100: #1b1a45;
+
+        --color-red-50: #2a1114;
+        --color-red-200: #7f1d1d;
+        --color-red-700: #f87171;
+        --color-red-800: #fca5a5;
+
+        --color-green-50: #0f2a1d;
+        --color-green-200: #14532d;
+        --color-green-700: #4ade80;
+        --color-green-800: #86efac;
+
+        --color-amber-50: #2b210c;
+        --color-amber-200: #78350f;
+        --color-amber-800: #fcd34d;
+    }
+
+    /* Permukaan yang tadinya putih */
+    :root[data-theme="dark"] .bg-white,
+    :root[data-theme="dark"] .topbar,
+    :root[data-theme="dark"] .stat-card,
+    :root[data-theme="dark"] .panel,
+    :root[data-theme="dark"] .filter-bar,
+    :root[data-theme="dark"] .table-container,
+    :root[data-theme="dark"] .field-control,
+    :root[data-theme="dark"] .rich-editor,
+    :root[data-theme="dark"] .button-secondary,
+    :root[data-theme="dark"] .button-danger,
+    :root[data-theme="dark"] .button-success,
+    :root[data-theme="dark"] .app-footer,
+    :root[data-theme="dark"] #status-dialog {
+        background-color: var(--surface);
+    }
+    :root[data-theme="dark"] .field-control:disabled {
+        background-color: var(--color-slate-100);
+    }
+    :root[data-theme="dark"] .border-white\/80 {
+        border-color: var(--color-slate-200);
+    }
+
+    /* Tombol biru: warna latar tetap pekat agar teks putih terbaca */
+    :root[data-theme="dark"] .bg-blue-700,
+    :root[data-theme="dark"] .button-primary {
+        background-color: #2563eb;
+    }
+    :root[data-theme="dark"] .hover\:bg-blue-800:hover,
+    :root[data-theme="dark"] .button-primary:hover {
+        background-color: #1d4ed8;
+    }
+    :root[data-theme="dark"] .active\:bg-blue-900:active,
+    :root[data-theme="dark"] .button-primary:active {
+        background-color: #1e40af;
+    }
+
+    /* Sidebar: teks tetap terang */
+    :root[data-theme="dark"] .sidebar .nav-link { color: #e2e8f0; }
+    :root[data-theme="dark"] .sidebar .nav-link:hover { color: #fff; }
+    :root[data-theme="dark"] .brand small { color: rgba(219, 234, 254, .7); }
+
+    /* Logo login: latar putih agar logo gelap tetap terlihat */
+    :root[data-theme="dark"] section[aria-labelledby="login-title"] > span:first-child {
+        background: #fff;
+        padding: .25rem;
+    }
+
+    /* Form tervalidasi (dari app.css) */
+    :root[data-theme="dark"] input[aria-invalid="true"] {
+        border-color: #ef4444;
+        background-color: #2a1114;
+    }
+
+    /* Footer dan popup (warna di app.css/index.php ditulis langsung) */
+    :root[data-theme="dark"] .app-footer { border-top-color: var(--color-slate-200); color: var(--color-slate-500); }
+    :root[data-theme="dark"] .app-footer strong { color: var(--color-slate-700); }
+    :root[data-theme="dark"] #status-dialog h2 { color: var(--color-slate-900); }
+    :root[data-theme="dark"] #status-dialog p { color: var(--color-slate-600); }
+    :root[data-theme="dark"] #status-dialog::backdrop { background: rgba(0, 0, 0, .65); }
+
+    /* Editor Quill (notulensi) */
+    :root[data-theme="dark"] .rich-editor .ql-toolbar.ql-snow,
+    :root[data-theme="dark"] .rich-editor .ql-container.ql-snow {
+        border-color: var(--color-slate-300);
+    }
+    :root[data-theme="dark"] .rich-editor .ql-toolbar.ql-snow { background: var(--color-slate-100); }
+    :root[data-theme="dark"] .ql-snow .ql-stroke { stroke: #cbd5e1; }
+    :root[data-theme="dark"] .ql-snow .ql-fill { fill: #cbd5e1; }
+    :root[data-theme="dark"] .ql-snow .ql-picker { color: #cbd5e1; }
+    :root[data-theme="dark"] .rich-editor .ql-editor.ql-blank::before { color: var(--color-slate-400); }
+}
+
+/* Tombol ganti tema (melayang) */
+.theme-fab {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--color-slate-300);
+    border-radius: 9999px;
+    background: var(--surface, #fff);
+    color: var(--color-slate-700);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, .18);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.theme-fab svg {
+    width: 1.375rem;
+    height: 1.375rem;
+}
+.theme-fab:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, .35);
+}
+@media (hover: hover) {
+    .theme-fab:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .25);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-fab { transition: none; }
+}
+
+/* Mode terang: tampilkan bulan. Mode gelap: tampilkan matahari. */
+.theme-fab .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-fab .icon-sun { display: block; }
+:root[data-theme="dark"] .theme-fab .icon-moon { display: none; }
+
+/* Beri ruang agar teks footer tidak tertutup tombol di layar sempit */
+@media (max-width: 39.999rem) {
+    .app-footer {
+        padding-left: 4.5rem;
+        padding-right: 4.5rem;
+    }
+}
+
+@media print {
+    .theme-fab { display: none !important; }
+}

@@ -2143,3 +2143,8 @@
         display: block;
     }
 }
+
+.status-select {
+    width: auto;
+    min-width: 8.5rem;
+}

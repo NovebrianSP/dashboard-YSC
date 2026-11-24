@@ -56,7 +56,17 @@ $flashStyle = match ($message['type'] ?? '') {
     <title>Masuk | Smart Cendekia</title>
     <link rel="icon" type="image/png" href="<?= h(app_url('/assets/logo_ysc-1-removebg-preview.png?v=3')) ?>">
     <meta name="theme-color" content="#142b4a">
-    <link href="<?= h(app_url('/assets/css/app.css')) ?>" rel="stylesheet">
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('theme');
+                if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.dataset.theme = t;
+            } catch (e) {}
+        })();
+    </script>
+    <link href="<?= h(asset_url('/assets/css/app.css')) ?>" rel="stylesheet">
+    <link href="<?= h(asset_url('/assets/css/dark.css')) ?>" rel="stylesheet">
 </head>
 
 <body class="min-h-screen bg-slate-100 font-sans text-slate-800 antialiased">
@@ -94,6 +104,19 @@ $flashStyle = match ($message['type'] ?? '') {
             <p class="mt-8 text-center text-xs text-slate-400">Smart Cendekia</p>
         </section>
     </main>
+
+    <button type="button" id="theme-toggle" class="theme-fab" aria-pressed="false" aria-label="Ganti ke mode gelap" title="Ganti ke mode gelap">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+    </button>
+
+    <script src="<?= h(app_url('/assets/js/script.js')) ?>"></script>
+    </script>
 </body>
 
 </html>
