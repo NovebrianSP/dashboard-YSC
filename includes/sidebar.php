@@ -56,6 +56,7 @@
         <?php if (in_array(current_user()['role'] ?? '', ['admin', 'pimpinan'], true)): ?>
             <a class="nav-link" href="<?= h(app_url('/modules/laporan/index.php')) ?>">Arsip Laporan Bulanan</a>
             <a class="nav-link" href="<?= h(app_url('/modules/dap/index.php')) ?>">Daily Activities Plan</a>
+            <a class="nav-link" href="<?= h(app_url('/modules/keuangan/index.php')) ?>">Laporan Keuangan</a>
         <?php endif; ?>
         <?php if (is_admin()): ?>
             <a class="nav-link" href="<?= h(app_url('/modules/users/index.php')) ?>">Manajemen Pengguna</a>

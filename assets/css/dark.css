@@ -162,3 +162,20 @@
 @media print {
     .theme-fab { display: none !important; }
 }
+
+/* Tabel transaksi: kotak gulir dengan header menempel */
+.tx-scroll {
+    max-height: 440px;
+    overflow-y: auto;
+}
+.tx-scroll .data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--color-slate-50);
+    box-shadow: 0 1px 0 var(--color-slate-200); /* garis bawah header, karena border-collapse menghilangkan border saat sticky */
+}
+.tx-scroll:focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: -2px;
+}
