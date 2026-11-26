@@ -38,6 +38,14 @@ Notulensi dan jadwal rapat tersedia bersama pada menu **Rapat dan Notulensi**. H
 
 Arsip laporan bulanan berdiri sendiri pada menu **Arsip Laporan Bulanan**. Untuk database yang sudah ada, jalankan `database/migrations/20261120_create_monthly_reports_table.sql` sekali. Admin dan pimpinan dapat mengunggah beberapa laporan per bulan dalam format DOC, DOCX, atau PDF (maksimal 10 MB per file), melihat PDF dan DOCX langsung di aplikasi, serta mengunduh arsip tersebut. File DOC lama tetap dapat diunduh, tetapi belum mendukung pratinjau langsung. File disimpan di `uploads/laporan_bulanan` dan hanya dapat diakses melalui aplikasi oleh admin atau pimpinan.
 
+### Laporan keuangan
+
+Laporan keuangan menyediakan ringkasan, grafik tren, rekap bulanan per sumber/komponen, perbandingan rekap bulanan dengan laporan sumber kumulatif, capaian target tahunan, dan rekonsiliasi saldo. Admin dan pimpinan dapat mengisi **Input Realisasi Bulanan**, **Input Laporan Sumber**, target pada **Atur Target**, dan saldo pada **Atur saldo**. **Rekap Terperinci** menampilkan rincian tahunan seluruh sheet keuangan. Untuk database yang sudah ada, jalankan `database/migrations/20261124_create_finance_reporting.sql`, lalu `database/migrations/20261124_create_finance_source_consolidation.sql`; instalasi baru mendapatkan tabel tersebut dari `database.sql`.
+
+Penerimaan dicatat menurut SDIT, SMPIT, Yayasan (termasuk DANUS), Wakaf, Infak, dan Lain-lain. Pengeluaran dicatat menurut biaya SDIT, SMPIT, Yayasan, Wakaf, dan Infak. Nilai pada riwayat transaksi per pos yang lama tetap tersedia, tetapi tidak digabung otomatis agar data agregat konsolidasi tidak terhitung ganda.
+
+Untuk memasukkan data dari `Dashboard Capaian Keuangan.xlsx`, jalankan seeder CLI dari root project: `php database/seeders/seed_finance_excel_2026.php`. Seeder memasukkan realisasi bulanan Januari–Oktober 2026, rekap kumulatif laporan sumber per 31 Juli, target tahunan, serta saldo pada sheet Dashboard. Rekap kumulatif disimpan terpisah dari realisasi bulanan agar selisihnya dapat dibandingkan tanpa penghitungan ganda. Seeder aman dijalankan ulang: data yang sama dilewati, sedangkan nilai yang berbeda menyebabkan proses batal tanpa menimpa data.
+
 Contoh menjalankan server development dari folder project:
 
 ```powershell

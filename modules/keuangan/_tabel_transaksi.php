@@ -2,7 +2,7 @@
 defined('KEUANGAN_PARTIAL') || exit; // tidak boleh dibuka langsung lewat URL
 
 /**
- * Variabel berikut disediakan oleh modules/keuangan/index.php.
+ * Variabel berikut disediakan oleh modules/keuangan/transaksi.php.
  *
  * @var array<int, array<string, mixed>> $recent
  * @var int                              $totalTransactions

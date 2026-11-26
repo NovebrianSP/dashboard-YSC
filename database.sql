@@ -3,6 +3,10 @@
 --     COLLATE utf8mb4_unicode_ci;
 -- USE smartcendekia;
 
+-- ============================================================
+-- Pengguna
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS users (
     id_user INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nama_lengkap VARCHAR(100) NOT NULL,
@@ -14,6 +18,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- ============================================================
+-- Rapat dan notulensi
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS jadwal_rapat (
     id_rapat INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     judul_rapat VARCHAR(200) NOT NULL,
@@ -23,7 +31,6 @@ CREATE TABLE IF NOT EXISTS jadwal_rapat (
     kategori_unit ENUM('yayasan', 'sdit', 'smpit', 'semua') NOT NULL,
     status_rapat ENUM('terjadwal', 'selesai', 'dibatalkan') NOT NULL DEFAULT 'terjadwal',
     deskripsi_agenda TEXT NULL,
-    reminder_terkirim TINYINT(1) NOT NULL DEFAULT 0,
     dibuat_oleh INT UNSIGNED NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_jadwal_tanggal_status (tanggal_rapat, status_rapat),
@@ -55,6 +62,10 @@ CREATE TABLE IF NOT EXISTS tindak_lanjut (
     CONSTRAINT fk_tugas_notulensi FOREIGN KEY (id_notulensi) REFERENCES notulensi(id_notulensi) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- ============================================================
+-- Daily Activities Plan
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS dap (
     id_dap INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     id_user INT UNSIGNED NOT NULL,
@@ -79,6 +90,10 @@ CREATE TABLE IF NOT EXISTS dap_activities (
     CONSTRAINT fk_dap_activities_dap FOREIGN KEY (id_dap) REFERENCES dap(id_dap) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- ============================================================
+-- Arsip laporan bulanan (berkas unggahan)
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS laporan_bulanan (
     id_laporan INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     bulan DATE NOT NULL,
@@ -92,19 +107,52 @@ CREATE TABLE IF NOT EXISTS laporan_bulanan (
     CONSTRAINT fk_laporan_bulanan_user FOREIGN KEY (diunggah_oleh) REFERENCES users(id_user) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS transaksi_keuangan (
-    id_transaksi INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tanggal DATE NOT NULL,
-    jenis ENUM('pemasukan', 'pengeluaran') NOT NULL,
-    kategori VARCHAR(60) NOT NULL,
-    pos ENUM('yayasan', 'kantin', 'donasi') NOT NULL,
-    keterangan VARCHAR(200) NULL,
-    jumlah DECIMAL(15,2) NOT NULL,
-    is_demo TINYINT(1) NOT NULL DEFAULT 0,
-    dibuat_oleh INT UNSIGNED NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_keu_tanggal (tanggal, jenis),
-    INDEX idx_keu_pos (pos),
-    INDEX idx_keu_demo (is_demo),
-    CONSTRAINT fk_keu_user FOREIGN KEY (dibuat_oleh) REFERENCES users(id_user) ON DELETE SET NULL
+-- ============================================================
+-- Laporan keuangan (hasil impor file Excel)
+-- Setiap impor menjadi satu laporan, yaitu satu tab di halaman Laporan Keuangan.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS keuangan_laporan (
+    id_laporan INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(150) NOT NULL,
+    tahun SMALLINT UNSIGNED NOT NULL,
+    sampai_bulan TINYINT UNSIGNED NOT NULL,
+    saldo_awal DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    saldo_akhir_laporan DECIMAL(15,2) NULL,
+    nama_file_asli VARCHAR(240) NOT NULL,
+    hash_file CHAR(64) NOT NULL,
+    diimpor_oleh INT UNSIGNED NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_keuangan_laporan_hash (hash_file),
+    INDEX idx_keuangan_laporan_urut (tahun, sampai_bulan, created_at),
+    CONSTRAINT fk_keuangan_laporan_user FOREIGN KEY (diimpor_oleh) REFERENCES users(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS keuangan_laporan_realisasi (
+    id_laporan INT UNSIGNED NOT NULL,
+    bulan TINYINT UNSIGNED NOT NULL,
+    jenis ENUM('penerimaan', 'pengeluaran') NOT NULL,
+    komponen VARCHAR(30) NOT NULL,
+    jumlah DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (id_laporan, bulan, jenis, komponen),
+    CONSTRAINT fk_laporan_realisasi_laporan FOREIGN KEY (id_laporan) REFERENCES keuangan_laporan(id_laporan) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS keuangan_laporan_konsolidasi (
+    id_laporan INT UNSIGNED NOT NULL,
+    jenis ENUM('penerimaan', 'pengeluaran') NOT NULL,
+    komponen VARCHAR(30) NOT NULL,
+    jumlah DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    keterangan VARCHAR(500) NULL,
+    PRIMARY KEY (id_laporan, jenis, komponen),
+    CONSTRAINT fk_laporan_konsolidasi_laporan FOREIGN KEY (id_laporan) REFERENCES keuangan_laporan(id_laporan) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS keuangan_laporan_target (
+    id_laporan INT UNSIGNED NOT NULL,
+    sumber VARCHAR(30) NOT NULL,
+    jumlah DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    catatan VARCHAR(500) NULL,
+    PRIMARY KEY (id_laporan, sumber),
+    CONSTRAINT fk_laporan_target_laporan FOREIGN KEY (id_laporan) REFERENCES keuangan_laporan(id_laporan) ON DELETE CASCADE
 ) ENGINE=InnoDB;

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('/modules/keuangan/index.php');
+    redirect('/modules/keuangan/transaksi.php');
 }
 verify_csrf();
 
@@ -14,10 +14,10 @@ $action = (string) ($_POST['action'] ?? '');
 if ($action === 'hapus') {
     $deleted = $pdo->exec('DELETE FROM transaksi_keuangan WHERE is_demo = 1');
     flash('success', "Data demo dihapus ({$deleted} baris). Data asli tidak tersentuh.");
-    redirect('/modules/keuangan/index.php');
+    redirect('/modules/keuangan/transaksi.php');
 }
 if ($action !== 'buat') {
-    redirect('/modules/keuangan/index.php');
+    redirect('/modules/keuangan/transaksi.php');
 }
 
 mt_srand(2026);
@@ -112,4 +112,4 @@ try {
 }
 
 flash('success', 'Data demo berhasil dibuat untuk 12 bulan terakhir.');
-redirect('/modules/keuangan/index.php');
+redirect('/modules/keuangan/transaksi.php');
