@@ -7,7 +7,9 @@ require_admin();
 const DAP_IMPORT_MAX_BYTES = 5 * 1024 * 1024;
 
 $errors = [];
-$sheetName = trim((string) ($_POST['sheet'] ?? 'Iyan'));
+$warnings = [];
+$sheetInput = $_POST['sheet'] ?? '';
+$sheetName = is_string($sheetInput) ? trim($sheetInput) : '';
 $defaultWeekStart = (new DateTimeImmutable('today'))->modify('monday this week');
 $weekStartValue = trim((string) ($_POST['tanggal_mulai'] ?? $defaultWeekStart->format('Y-m-d')));
 
@@ -22,8 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ) {
         $errors[] = 'Tanggal mulai minggu harus berupa tanggal Senin yang valid.';
     }
-    if ($sheetName === '' || mb_strlen($sheetName) > 100) {
-        $errors[] = 'Nama sheet wajib diisi dan maksimal 100 karakter.';
+    if (!is_string($sheetInput)) {
+        $errors[] = 'Nama sheet tidak valid.';
+    } elseif ($sheetName === '') {
+        $warnings[] = 'Isi nama sheet terlebih dahulu sebelum mengimpor.';
+    } elseif (mb_strlen($sheetName) > 100) {
+        $errors[] = 'Nama sheet maksimal 100 karakter.';
     }
 
     $file = $_FILES['file_excel'] ?? null;
@@ -41,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'File yang diunggah tidak valid.';
     }
 
-    if (!$errors && $weekStart !== false) {
+    if (!$errors && !$warnings && $weekStart !== false) {
         $temporaryPath = (string) $file['tmp_name'];
         $mime = (new finfo(FILEINFO_MIME_TYPE))->file($temporaryPath);
         $allowedMime = [
@@ -104,19 +110,31 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 <?php endif; ?>
 
+<?php if ($warnings): ?>
+    <div class="alert alert-warning" role="alert">
+        <strong>Nama sheet diperlukan.</strong>
+        <ul class="mt-2">
+            <?php foreach ($warnings as $warning): ?>
+                <li>&bull; <?= h($warning) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
 <form method="post" enctype="multipart/form-data" class="panel form-panel mb-6">
     <?= csrf_field() ?>
     <div class="mb-4">
         <label class="field-label" for="file_excel">File template Excel (.xlsx, maksimal 5 MB)</label>
         <input class="field-control file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-blue-700"
             id="file_excel" type="file" name="file_excel"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        <span class="field-note">Jika validasi gagal, file Excel perlu dipilih ulang sebelum mencoba kembali.</span>
     </div>
     <div class="mb-4">
         <label class="field-label" for="sheet">Nama sheet</label>
         <input class="field-control" id="sheet" type="text" name="sheet" maxlength="100"
-            value="<?= h($sheetName) ?>" required>
-        <span class="field-note">Default: Iyan. Isi sesuai nama tab pada file Excel.</span>
+            value="<?= h($sheetName) ?>">
+        <span class="field-note">Isi sesuai nama tab pada file Excel, termasuk jika hanya ada satu sheet.</span>
     </div>
     <div class="mb-5">
         <label class="field-label" for="tanggal_mulai">Minggu tujuan (tanggal Senin)</label>
