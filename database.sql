@@ -15,7 +15,12 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'pimpinan', 'unit_sdit', 'unit_smpit') NOT NULL,
     no_whatsapp VARCHAR(20) NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    failed_login_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    locked_at DATETIME NULL,
+    password_reset_token CHAR(64) NULL,
+    password_reset_expires_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_users_password_reset_token (password_reset_token)
 ) ENGINE=InnoDB;
 
 -- ============================================================

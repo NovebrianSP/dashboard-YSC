@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/helpers.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/password_reset.php';
 
 if (current_user()) {
     redirect('dashboard.php');
@@ -8,6 +9,8 @@ if (current_user()) {
 
 $error = ['email' => '', 'password' => ''];
 $email = '';
+$isLocked = false;
+$emailDeliveryFailed = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $email = trim((string) ($_POST['email'] ?? ''));
@@ -21,20 +24,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($password === '') {
         $error['password'] = 'Kata sandi wajib diisi.';
     } else {
-        // Tahap 2: cek ke database.
-        $statement = $pdo->prepare('SELECT id_user, nama_lengkap, jabatan, email, password, role FROM users WHERE email = :email LIMIT 1');
-        $statement->execute(['email' => $email]);
-        $user = $statement->fetch();
+        $resetToken = null;
+        $pdo->beginTransaction();
+        try {
+            $statement = $pdo->prepare(
+                'SELECT id_user, nama_lengkap, jabatan, email, password, role, failed_login_attempts, locked_at
+                 FROM users WHERE email = :email LIMIT 1 FOR UPDATE'
+            );
+            $statement->execute(['email' => $email]);
+            $user = $statement->fetch();
 
-        if (!$user) {
-            $error['email'] = 'Email salah.';
-        } elseif (!password_verify($password, $user['password'])) {
-            $error['password'] = 'Kata sandi salah.';
-        } else {
-            session_regenerate_id(true);
-            unset($user['password']);
-            $_SESSION['user'] = $user;
-            redirect('dashboard.php');
+            if (!$user || $user['locked_at'] !== null) {
+                $isLocked = $user && $user['locked_at'] !== null;
+                $error['password'] = $isLocked
+                    ? 'Akun dikunci setelah tiga kali gagal masuk. Gunakan tautan reset kata sandi.'
+                    : 'Email atau kata sandi salah.';
+                $pdo->commit();
+            } elseif (!password_verify($password, $user['password'])) {
+                $failedAttempts = (int) $user['failed_login_attempts'] + 1;
+                if ($failedAttempts >= 3) {
+                    $isLocked = true;
+                    $resetToken = create_password_reset_token($pdo, (int) $user['id_user']);
+                    $update = $pdo->prepare(
+                        'UPDATE users
+                         SET failed_login_attempts = 3, locked_at = UTC_TIMESTAMP()
+                         WHERE id_user = :id'
+                    );
+                    $error['password'] = 'Akun dikunci setelah tiga kali gagal masuk. Tautan reset kata sandi telah dikirim ke email akun.';
+                } else {
+                    $update = $pdo->prepare(
+                        'UPDATE users SET failed_login_attempts = :attempts WHERE id_user = :id'
+                    );
+                    $update->bindValue(':attempts', $failedAttempts, PDO::PARAM_INT);
+                    $error['password'] = 'Email atau kata sandi salah.';
+                }
+                $update->bindValue(':id', (int) $user['id_user'], PDO::PARAM_INT);
+                $update->execute();
+                $pdo->commit();
+            } else {
+                $update = $pdo->prepare(
+                    'UPDATE users SET failed_login_attempts = 0 WHERE id_user = :id'
+                );
+                $update->execute(['id' => (int) $user['id_user']]);
+                $pdo->commit();
+                session_regenerate_id(true);
+                unset($user['password'], $user['failed_login_attempts'], $user['locked_at']);
+                $_SESSION['user'] = $user;
+                redirect('dashboard.php');
+            }
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
+        }
+
+        if ($resetToken !== null) {
+            try {
+                send_password_reset_email($email, $resetToken);
+            } catch (RuntimeException $exception) {
+                error_log('Password reset email delivery failed: ' . $exception->getMessage());
+                $emailDeliveryFailed = true;
+                $error['password'] = 'Akun dikunci setelah tiga kali gagal masuk, tetapi email reset gagal dikirim. Coba minta tautan reset kembali.';
+            }
+        }
+    }
+} elseif (isset($_GET['email']) && is_string($_GET['email'])) {
+    $email = trim($_GET['email']);
+    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $statement = $pdo->prepare('SELECT locked_at FROM users WHERE email = :email LIMIT 1');
+        $statement->execute(['email' => $email]);
+        $lockedAt = $statement->fetchColumn();
+        $isLocked = $lockedAt !== false && $lockedAt !== null;
+        if ($isLocked) {
+            $error['password'] = 'Akun dikunci setelah tiga kali gagal masuk. Gunakan tautan reset kata sandi.';
         }
     }
 }
@@ -95,11 +158,21 @@ $flashStyle = match ($message['type'] ?? '') {
                     <label class="mb-2 block text-sm font-medium text-slate-700" for="password">Kata sandi</label>
                     <input class="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15"
                         type="password" name="password" id="password" autocomplete="current-password" required
+                        <?= $isLocked ? 'disabled' : '' ?>
                         <?= $error['password'] ? 'aria-invalid="true" autofocus' : '' ?>
                         aria-describedby="password-error">
                     <p id="password-error" class="mt-1.5 text-xs text-red-600 <?= $error['password'] ? '' : 'hidden' ?>"><?= h($error['password']) ?></p>
+                    <?php if ($emailDeliveryFailed): ?>
+                        <p class="mt-2 text-xs text-amber-700">Email reset tidak dapat dikirim saat ini. Silakan coba minta tautan reset kembali.</p>
+                    <?php endif; ?>
                 </div>
-                <button class="w-full rounded-lg bg-blue-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500/30 active:bg-blue-900" type="submit">Masuk</button>
+                <?php if ($isLocked): ?>
+                    <a class="block w-full rounded-lg bg-blue-700 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+                        href="<?= h(app_url('/reset_password.php?email=' . rawurlencode($email))) ?>">Reset kata sandi melalui email</a>
+                <?php else: ?>
+                    <button class="w-full rounded-lg bg-blue-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500/30 active:bg-blue-900" type="submit">Masuk</button>
+                    <p class="text-center text-sm"><a class="font-medium text-blue-700 hover:text-blue-800" href="<?= h(app_url('/reset_password.php' . ($email !== '' ? '?email=' . rawurlencode($email) : ''))) ?>">Lupa kata sandi?</a></p>
+                <?php endif; ?>
             </form>
             <p class="mt-8 text-center text-xs text-slate-400">Smart Cendekia</p>
         </section>

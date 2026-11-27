@@ -13,6 +13,7 @@ Aplikasi PHP native untuk mengelola jadwal rapat, notulensi, dan tindak lanjut.
 
 1. Buat database dan tabel dengan mengimpor `database.sql` ke MySQL/MariaDB.
 2. Atur environment variable `DB_HOST`, `DB_NAME`, `DB_USER`, dan `DB_PASSWORD`. Default lokal adalah host `127.0.0.1`, database `smartcendekia`, user `root`, tanpa password.
+   Atur juga `APP_URL` ke origin publik aplikasi (contoh `https://dashboard.example.org`) dan `MAIL_FROM` ke alamat pengirim yang valid. Pastikan fungsi PHP `mail()` dikonfigurasi untuk mengirim email melalui SMTP; untuk XAMPP, atur SMTP pada `php.ini` yang digunakan Apache, lalu restart Apache.
 3. Buat admin pertama melalui CLI. Set `ADMIN_EMAIL` dan `ADMIN_PASSWORD` (minimal 10 karakter), lalu jalankan `php config/create_admin.php`. Script hanya berjalan melalui CLI dan hanya jika tabel pengguna masih kosong.
 4. Pasang dependensi front-end, bangun stylesheet Tailwind, dan salin renderer DOCX lokal:
 
@@ -31,6 +32,10 @@ Aplikasi PHP native untuk mengelola jadwal rapat, notulensi, dan tindak lanjut.
 Untuk database yang sudah ada, jalankan `database/migrations/20261119_create_dap_tables.sql` sekali setelah memilih database aplikasi di MySQL. Instalasi baru mendapatkan tabel DAP saat mengimpor `database.sql`.
 
 Admin dan pimpinan dapat membuat satu DAP per minggu untuk akun masing-masing. Pilih tanggal Senin sebagai awal minggu, isi hingga 10 pekerjaan prioritas dan slot aktivitas Senin–Sabtu, lalu pilih **Submit DAP**. Slot tersedia setiap 30 menit: Senin–Jumat pukul 07.30–15.30 dan Sabtu pukul 07.30–13.00. Aktivitas pada slot boleh dikosongkan. Setelah submit, DAP langsung dapat dilihat admin dan pimpinan; pemiliknya saja yang dapat mengedit. Dari halaman detail DAP, unduh file Excel `.xlsx` atau gunakan tombol cetak dan simpan sebagai PDF.
+
+### Keamanan login dan reset kata sandi
+
+Tiga kegagalan kata sandi berturut-turut mengunci akun sampai reset kata sandi berhasil. Tautan reset dikirim ke alamat email akun, hanya berlaku satu jam, dan hanya dapat digunakan sekali. Pengguna dapat meminta tautan baru dari halaman login. Untuk database yang sudah ada, jalankan `database/migrations/20261127_add_login_lock_and_password_reset.sql` sekali. Reset membutuhkan `APP_URL`, `MAIL_FROM`, dan konfigurasi SMTP PHP `mail()` yang berfungsi.
 
 ### Rapat, notulensi, dan laporan bulanan
 
@@ -57,6 +62,7 @@ Lalu buka `http://127.0.0.1:8000`.
 ## Catatan keamanan
 
 - Query menggunakan PDO prepared statements; password akun disimpan dengan `password_hash()`.
+- Akun dikunci setelah tiga kali gagal login berturut-turut; reset email memakai token acak sekali pakai yang disimpan dalam bentuk hash dan kedaluwarsa satu jam.
 - Form perubahan data dilindungi CSRF token dan tampilan meng-escape output.
 - Role SD IT hanya melihat data kategori SD IT dan Semua Unit; role SMP IT hanya melihat SMP IT dan Semua Unit.
 - Lampiran notulensi dibatasi PDF/JPG/PNG maksimal 5 MB; laporan bulanan dibatasi DOC/DOCX/PDF maksimal 10 MB. Jenis file diperiksa, nama penyimpanannya acak, dan file laporan hanya diunduh lewat endpoint terautentikasi.

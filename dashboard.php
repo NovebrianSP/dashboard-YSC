@@ -15,6 +15,33 @@ $statement->execute();
 $upcoming = $statement->fetchAll();
 $nextMeeting = $upcoming[0] ?? null;
 
+// DAP minggu ini. Aturan akses sama dengan menu Daily Activities Plan di sidebar (admin dan pimpinan).
+$dapVisible = in_array(current_user()['role'] ?? '', ['admin', 'pimpinan'], true);
+$dapSubmitters = [];
+$dapEligible = 0;
+$dapWeekStart = '';
+$dapWeekEnd = '';
+if ($dapVisible) {
+    // Minggu berjalan: Senin sampai Minggu (zona waktu WIB).
+    $weekStart = new DateTimeImmutable('monday this week', new DateTimeZone('Asia/Jakarta'));
+    $dapWeekStart = $weekStart->format('Y-m-d');
+    $dapWeekEnd = $weekStart->modify('+6 days')->format('Y-m-d');
+
+    $statement = $pdo->prepare(
+        "SELECT u.id_user, u.nama_lengkap, MAX(d.submitted_at) AS submitted_at
+         FROM dap d
+         JOIN users u ON u.id_user = d.id_user
+         WHERE d.status = 'submitted' AND d.tanggal_mulai BETWEEN :mulai AND :akhir
+         GROUP BY u.id_user, u.nama_lengkap
+         ORDER BY submitted_at ASC"
+    );
+    $statement->execute(['mulai' => $dapWeekStart, 'akhir' => $dapWeekEnd]);
+    $dapSubmitters = $statement->fetchAll();
+
+    $dapEligible = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role IN ('admin', 'pimpinan')")->fetchColumn();
+}
+$dapCount = count($dapSubmitters);
+
 $financeVisible = can_view_finance();
 $dashboardYear = (int) date('Y');
 $financeMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -77,18 +104,40 @@ require __DIR__ . '/includes/header.php';
 <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
     <div class="stat-card"><span>Rapat terjadwal bulan ini</span><strong><?= $meetingsThisMonth ?></strong><a href="<?= h(app_url('/modules/rapat/index.php')) ?>">Lihat jadwal →</a></div>
     <div class="stat-card"><span>Arsip notulensi</span><strong><?= $minutesCount ?></strong><a href="<?= h(app_url('/modules/rapat/index.php#arsip-notulensi')) ?>">Lihat arsip →</a></div>
-    <div class="stat-card">
-        <span>Jadwal terdekat</span>
-        <?php if ($nextMeeting): ?>
-            <strong class="text-lg"><?= h($nextMeeting['judul_rapat']) ?></strong>
-            <span><?= h(format_date($nextMeeting['tanggal_rapat'])) ?> · <?= h(substr($nextMeeting['waktu_mulai'], 0, 5)) ?></span>
-            <a href="<?= h(app_url('/modules/rapat/index.php')) ?>">Lihat detail →</a>
-        <?php else: ?>
-            <strong class="text-lg">Belum ada</strong>
-            <span>Tidak ada jadwal mendatang.</span>
-            <a href="<?= h(app_url('/modules/rapat/index.php')) ?>">Lihat jadwal →</a>
-        <?php endif; ?>
-    </div>
+    <?php if ($dapVisible): ?>
+        <div class="stat-card">
+            <span>DAP minggu ini</span>
+            <strong><?= $dapCount ?></strong>
+            <span>dari <?= $dapEligible ?> pengguna sudah mengisi</span>
+            <span class="text-xs text-slate-400"><?= h(format_date($dapWeekStart)) ?> &ndash; <?= h(format_date($dapWeekEnd)) ?></span>
+            <?php if ($dapSubmitters): ?>
+                <ul class="mt-2 text-sm text-slate-700">
+                    <?php foreach (array_slice($dapSubmitters, 0, 5) as $person): ?>
+                        <li>&bull; <?= h($person['nama_lengkap']) ?></li>
+                    <?php endforeach; ?>
+                    <?php if ($dapCount > 5): ?>
+                        <li class="text-slate-500">+<?= $dapCount - 5 ?> lainnya</li>
+                    <?php endif; ?>
+                </ul>
+            <?php else: ?>
+                <span class="mt-2">Belum ada yang mengisi minggu ini.</span>
+            <?php endif; ?>
+            <a class="mt-2" href="<?= h(app_url('/modules/dap/index.php')) ?>">Lihat DAP →</a>
+        </div>
+    <?php else: ?>
+        <div class="stat-card">
+            <span>Jadwal terdekat</span>
+            <?php if ($nextMeeting): ?>
+                <strong class="text-lg"><?= h($nextMeeting['judul_rapat']) ?></strong>
+                <span><?= h(format_date($nextMeeting['tanggal_rapat'])) ?> · <?= h(substr($nextMeeting['waktu_mulai'], 0, 5)) ?></span>
+                <a href="<?= h(app_url('/modules/rapat/index.php')) ?>">Lihat detail →</a>
+            <?php else: ?>
+                <strong class="text-lg">Belum ada</strong>
+                <span>Tidak ada jadwal mendatang.</span>
+                <a href="<?= h(app_url('/modules/rapat/index.php')) ?>">Lihat jadwal →</a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 </div>
 <?php if ($financeVisible): ?>
     <section class="panel">
