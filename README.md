@@ -4,7 +4,7 @@ Aplikasi PHP native untuk mengelola jadwal rapat, notulensi, dan tindak lanjut.
 
 ## Persyaratan
 
-- PHP 8.0 atau lebih baru dengan ekstensi `pdo_mysql` dan `fileinfo`
+- PHP 8.0 atau lebih baru dengan ekstensi `pdo_mysql`, `fileinfo`, `zip`, dan `simplexml`
 - MySQL atau MariaDB
 - Apache dengan `mod_rewrite`/`AllowOverride` bila menggunakan file `.htaccess`
 - Node.js dan npm untuk membangun stylesheet Tailwind lokal
@@ -31,7 +31,7 @@ Aplikasi PHP native untuk mengelola jadwal rapat, notulensi, dan tindak lanjut.
 
 Untuk database yang sudah ada, jalankan `database/migrations/20261119_create_dap_tables.sql` sekali setelah memilih database aplikasi di MySQL. Instalasi baru mendapatkan tabel DAP saat mengimpor `database.sql`.
 
-Admin dan pimpinan dapat membuat satu DAP per minggu untuk akun masing-masing. Pilih tanggal Senin sebagai awal minggu, isi hingga 10 pekerjaan prioritas dan slot aktivitas Senin–Sabtu, lalu pilih **Submit DAP**. Slot tersedia setiap 30 menit: Senin–Jumat pukul 07.30–15.30 dan Sabtu pukul 07.30–13.00. Aktivitas pada slot boleh dikosongkan. Setelah submit, DAP langsung dapat dilihat admin dan pimpinan; pemiliknya saja yang dapat mengedit. Dari halaman detail DAP, unduh file Excel `.xlsx` atau gunakan tombol cetak dan simpan sebagai PDF.
+Admin dan pimpinan dapat membuat satu DAP per minggu untuk akun masing-masing. Pilih tanggal Senin sebagai awal minggu, isi hingga 10 pekerjaan prioritas dan slot aktivitas Senin–Sabtu, lalu pilih **Submit DAP**. Slot tersedia setiap 30 menit: Senin–Jumat pukul 07.30–16.00 dan Sabtu pukul 07.30–13.30. Aktivitas pada slot boleh dikosongkan. Setelah submit, DAP langsung dapat dilihat admin dan pimpinan; pemiliknya saja yang dapat mengedit. Dari halaman detail DAP, unduh file Excel `.xlsx` atau gunakan tombol cetak dan simpan sebagai PDF.
 
 ### Keamanan login dan reset kata sandi
 
@@ -50,6 +50,10 @@ Laporan keuangan menyediakan ringkasan, grafik tren, rekap bulanan per sumber/ko
 Penerimaan dicatat menurut SDIT, SMPIT, Yayasan (termasuk DANUS), Wakaf, Infak, dan Lain-lain. Pengeluaran dicatat menurut biaya SDIT, SMPIT, Yayasan, Wakaf, dan Infak. Nilai pada riwayat transaksi per pos yang lama tetap tersedia, tetapi tidak digabung otomatis agar data agregat konsolidasi tidak terhitung ganda.
 
 Untuk memasukkan data dari `Dashboard Capaian Keuangan.xlsx`, jalankan seeder CLI dari root project: `php database/seeders/seed_finance_excel_2026.php`. Seeder memasukkan realisasi bulanan Januari–Oktober 2026, rekap kumulatif laporan sumber per 31 Juli, target tahunan, serta saldo pada sheet Dashboard. Rekap kumulatif disimpan terpisah dari realisasi bulanan agar selisihnya dapat dibandingkan tanpa penghitungan ganda. Seeder aman dijalankan ulang: data yang sama dilewati, sedangkan nilai yang berbeda menyebabkan proses batal tanpa menimpa data.
+
+Admin dapat memilih tombol **Impor dari Excel** pada halaman DAP untuk mengunggah template `.xlsx` (maksimal 5 MB), menentukan nama sheet (default **Iyan**) dan tanggal Senin minggu tujuan. Impor mengisi DAP akun admin yang sedang masuk, memetakan aktivitas menurut urutan kolom Senin–Sabtu, dan tidak menimpa DAP yang sudah ada dengan isi berbeda. File hanya diproses sementara dan tidak disimpan di server.
+
+Seeder CLI tetap tersedia: `php database/seeders/import_dap_excel.php "<path-file>" "<nama-sheet>" "<email-akun>" "<tanggal-senin-YYYY-MM-DD>"`. Contoh: `php database/seeders/import_dap_excel.php "D:\path\DAP MAGANG YSC 23-28 Nov 2026.xlsx" "Iyan" "default@gmail.com" "2026-11-23"`. Slot DAP diperpanjang agar aktivitas pukul 15.30 dan 13.00 tetap dapat dimasukkan.
 
 Contoh menjalankan server development dari folder project:
 

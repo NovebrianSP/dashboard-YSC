@@ -27,7 +27,7 @@ function dap_week_days(DateTimeImmutable $weekStart): array
             'name' => $name,
             'date' => $date->format('Y-m-d'),
             'label' => $date->format('d/m/Y'),
-            'end_time' => $offset === 5 ? '13:00' : '15:30',
+            'end_time' => $offset === 5 ? '13:30' : '16:00',
         ];
     }
     return $days;

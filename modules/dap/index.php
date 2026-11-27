@@ -20,7 +20,12 @@ require __DIR__ . '/../../includes/header.php';
         <h1>Daily Activities Plan</h1>
         <p>Lihat DAP yang sudah disubmit atau buat rencana mingguan Anda.</p>
     </div>
-    <a class="button button-primary" href="<?= h(app_url('/modules/dap/tambah.php')) ?>">+ Buat DAP</a>
+    <div class="flex flex-wrap gap-2">
+        <?php if (is_admin()): ?>
+            <a class="button button-secondary" href="<?= h(app_url('/modules/dap/impor.php')) ?>">Impor dari Excel</a>
+        <?php endif; ?>
+        <a class="button button-primary" href="<?= h(app_url('/modules/dap/tambah.php')) ?>">+ Buat DAP</a>
+    </div>
 </div>
 <div class="table-container">
     <table class="data-table">

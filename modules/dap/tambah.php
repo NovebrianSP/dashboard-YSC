@@ -105,7 +105,7 @@ require __DIR__ . '/../../includes/header.php';
     </section>
 
     <?php if ($dapDays): ?>
-        <p class="text-sm text-slate-500">Slot aktivitas tersedia Senin–Jumat pukul 07.30–15.30 dan Sabtu pukul 07.30–13.00. Slot yang tidak digunakan boleh dikosongkan.</p>
+        <p class="text-sm text-slate-500">Slot aktivitas tersedia Senin–Jumat pukul 07.30–16.00 dan Sabtu pukul 07.30–13.30. Slot yang tidak digunakan boleh dikosongkan.</p>
         <?php $dapEditable = true; ?>
         <?php require __DIR__ . '/_schedule.php'; ?>
     <?php else: ?>
