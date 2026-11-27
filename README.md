@@ -31,7 +31,7 @@ Aplikasi PHP native untuk mengelola jadwal rapat, notulensi, dan tindak lanjut.
 
 Untuk database yang sudah ada, jalankan `database/migrations/20261119_create_dap_tables.sql` sekali setelah memilih database aplikasi di MySQL. Instalasi baru mendapatkan tabel DAP saat mengimpor `database.sql`.
 
-Admin dan pimpinan dapat membuat satu DAP per minggu untuk akun masing-masing. Pilih tanggal Senin sebagai awal minggu, isi hingga 10 pekerjaan prioritas dan slot aktivitas Senin–Sabtu, lalu pilih **Submit DAP**. Slot tersedia setiap 30 menit: Senin–Jumat pukul 07.30–16.00 dan Sabtu pukul 07.30–13.30. Aktivitas pada slot boleh dikosongkan. Setelah submit, DAP langsung dapat dilihat admin dan pimpinan; pemiliknya saja yang dapat mengedit. Dari halaman detail DAP, unduh file Excel `.xlsx` atau gunakan tombol cetak dan simpan sebagai PDF.
+Admin dan pimpinan dapat membuat satu DAP per minggu untuk akun masing-masing. Pilih tanggal Senin sebagai awal minggu, isi hingga 10 pekerjaan prioritas dan slot aktivitas Senin–Sabtu, lalu pilih **Submit DAP**. Slot tersedia setiap 30 menit: Senin–Jumat pukul 07.30–16.00 dan Sabtu pukul 07.30–13.30. Admin juga dapat memilih **Impor dari Excel** pada halaman DAP untuk mengunggah template `.xlsx` (maksimal 5 MB), memilih sheet (default **Iyan**) dan tanggal Senin minggu tujuan. Impor mengisi DAP akun admin yang sedang masuk, memetakan aktivitas menurut urutan kolom Senin–Sabtu, dan tidak menimpa DAP yang sudah ada dengan isi berbeda. File hanya diproses sementara. Dari halaman detail DAP, unduh file Excel `.xlsx` atau gunakan tombol cetak dan simpan sebagai PDF.
 
 ### Keamanan login dan reset kata sandi
 
